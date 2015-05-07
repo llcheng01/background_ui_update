@@ -9,20 +9,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 public class MainActivity extends ActionBarActivity {
 
     int i = 0;
     TextView tv;
-    final Handler myHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            // Get the bundle and extract data by Key
-            Bundle b = msg.getData();
-            String key = b.getString("MyKey");
-            tv.setText(tv.getText() + "Item: " + key + System.getProperty("line.separator"));
-        }
-    };
+    final Handler myHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,49 +31,25 @@ public class MainActivity extends ActionBarActivity {
     protected void onStart() {
         super.onStart();
 
-        // Create a new Thread
-        Thread background = new Thread(new Runnable() {
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                for (int i=0; i < 10; i++) {
-                    try {
-                        Thread.sleep(1000);
-                        Message msg = new Message();
-                        Bundle b = new Bundle();
-                        b.putString("MyKey", "My Value:" + String.valueOf(i));
-                        msg.setData(b);
-                        // Send message to the handler with the current message handler
-                        myHandler.sendMessage(msg);
-
-                    } catch (Exception e) {
-                        Log.v("Error", e.toString());
-                    }
-                }
+                UpdateGUI();
             }
-        });
+        }, 0, 1000);
 
-        background.start();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    private void UpdateGUI() {
+        i++;
+        myHandler.post(myRunnable);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    final Runnable myRunnable = new Runnable() {
+        @Override
+        public void run() {
+            tv.setText(String.valueOf(i));
         }
-
-        return super.onOptionsItemSelected(item);
-    }
+    };
 }
